@@ -7,6 +7,28 @@ Created on Thu Jan 11 10:21:49 2024
 import pandas as pd
 import os
 
+#%% Different split
+inputloc = r"WorkSpace/SSIT_Data_V1.csv"
+
+df_input = pd.read_csv(inputloc)
+
+groups = df_input['Classification']
+print(groups)
+tps = [i[7:] for i in groups] 
+
+df_input['timepoint'] = tps
+    
+    
+exportpath = 'SSITData.csv'
+
+df_input.to_csv(exportpath)
+    
+
+
+
+
+
+
 os.chdir(r'/home/formanj/scRNAseq_model/UpDownProject/Story')
 #%% Split SSIT preprocessing into useable format
 inputloc = r"SSITData.csv"
