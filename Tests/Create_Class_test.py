@@ -1,4 +1,4 @@
-#import inc_dec    # The code to test
+import inc_dec    # The code to test
 
 import unittest   # The test framework
 import scanpy as sc
@@ -8,9 +8,23 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-class Test_genericPP(unittest.TestCase):
-    self.adata = sc.datasets.blobs(random_state = 0)
-    self.adata.write('test.h5ad')
+class Test_scanpy_3k_PBMC(unittest.TestCase):
+    results_file = 'write/pbmc3k.h5ad'  # the file that will store the analysis results
+    def __init__(self, methodName: str = "runTest") -> None:
+        self.test_adata = sc.read_10x_mtx(
+                                'data/filtered_gene_bc_matrices/hg19/',  # the directory with the `.mtx` file
+                                var_names='gene_symbols',                # use gene symbols for the variable names (variables-axis index)
+                                cache=True)                              # write a cache file for faster subsequent reading
+
+        self.adata.var_names_make_unique()  # this is unnecessary if using `var_names='gene_ids'` in `sc.read_10x_mtx`
+        self.test_adata.write_h5ad(self.results_file)
+    
+
+
+    
+
+
+
 
     def test_load_data(self):
         self.assertEqual(self.adata.read_h5ad('test.h5ad'), )
