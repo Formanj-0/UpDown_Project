@@ -1,11 +1,11 @@
-import preprocessing_functions as ppf
+import scr.UpDown_Module.preprocessing_functions as ppf
 import os
 import scanpy as sc
 import numpy as np
 import anndata as ad
 import matplotlib.pyplot as plt
 import ast 
-import os
+
 
 
 
@@ -63,12 +63,12 @@ class overlord_pp():
         self.adata.write(data_path)
 
         # Save self.steps to a file
-        steps_file_path = f"settings_{os.path.splitext(__file__)[0]}"
+        steps_file_path = os.path.join(os.getcwd(), f"settings_{os.path.splitext(__file__)[0]}", "steps.txt")
         with open(steps_file_path, "w") as steps_file:
             steps_file.write(str(self.steps))
 
         # Save self.params to a file
-        params_file_path = f"settings_{os.path.splitext(__file__)[0]}"
+        params_file_path = os.path.join(os.getcwd(), f"settings_{os.path.splitext(__file__)[0]}", "params.txt")
         with open(params_file_path, "w") as params_file:
             params_file.write(str(self.params))
 
@@ -82,13 +82,13 @@ class overlord_pp():
         Uses the functions in the `steps` list and the parameters from the `params` dictionary.
         """
         # Load the steps from the file
-        steps_file_path = f"settings_{os.path.splitext(__file__)[0]}"
+        steps_file_path = os.path.join(os.getcwd(), f"settings_{os.path.splitext(__file__)[0]}", "steps.txt")
         with open(steps_file_path, "r") as steps_file:
             steps_str = steps_file.read()
         steps = ast.literal_eval(steps_str)
 
         # Load the params from the file
-        params_file_path = f"settings_{os.path.splitext(__file__)[0]}"
+        params_file_path = os.path.join(os.getcwd(), f"settings_{os.path.splitext(__file__)[0]}", "params.txt")
         with open(params_file_path, "r") as params_file:
             params_str = params_file.read()
         params = ast.literal_eval(params_str)
@@ -102,7 +102,7 @@ class overlord_pp():
 
 
     @record_method_calls
-    def remove_cells(self, min_genes, max_genes, min_counts, max_counts):
+    def remove_cells(self, min_genes=None, max_genes=None, min_counts=None, max_counts=None):
         """
         Removes cells from the self.adata object based on the specified gene and count thresholds.
         Updates the self.adata object.
@@ -118,6 +118,25 @@ class overlord_pp():
         return self.adata
 
 
+
+    @record_method_calls
+    def remove_genes(self, min_cells=None, max_cells=None, min_counts=None, max_counts=None):
+        """
+        Removes genes from the self.adata object based on the specified cell and count thresholds.
+        Updates the self.adata object.
+        """
+        print("===== Removing genes =====")
+        genes_initial = self.adata.n_vars
+        cells_initial = self.adata.n_obs
+        self.adata = ppf.remove_genes(self.adata, min_cells, max_cells, min_counts, max_counts)
+        genes_final = self.adata.n_vars
+        cells_final = self.adata.n_obs
+        print(f"Removed {genes_initial - genes_final} genes")
+        print(f"Removed {cells_initial - cells_final} cells")
+        return self.adata
+
+
+
     @record_method_calls
     def label_qc_genes(self, label_list, search_list):
         """
@@ -128,12 +147,18 @@ class overlord_pp():
             self.adata.var[label] = self.adata.var_names.str.startswith(search_term)
 
 
+
     @record_method_calls
     def calculate_qc_metrics(self, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True):
         """
         Calculates QC metrics for the self.adata object.
         """
+        old_qc_obs_names = list(self.adata.obs.columns)  # Get the current QC observation names
         sc.pp.calculate_qc_metrics(self.adata, qc_vars=qc_vars, percent_top=percent_top, log1p=log1p, inplace=inplace)
+        new_qc_obs_names = list(set(self.adata.obs.columns) - set(old_qc_obs_names))  # Get the new QC observation names
+        self.adata.uns['qc_obs_names'] = new_qc_obs_names  # Store the new QC observation names in adata.uns['qc_obs_names']
+        
+
 
 
     @record_method_calls
@@ -152,6 +177,13 @@ class overlord_pp():
             plt.show()
         else:
             print("Invalid visualization method. Please choose a valid method.")
+
+
+    @record_method_calls
+    def simple_qc(self, method, value, column_name, operator):
+        if method == 'comparison':
+            self.adata = ppf.remove_cells_by_qc_var(self.adata, column_name, value, operator)
+        # Add future methods here
 
 
 
@@ -204,6 +236,7 @@ class overlord_pp():
 
         plt.tight_layout()
         plt.show()
+
 
 
     @record_method_calls
