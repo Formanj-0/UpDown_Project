@@ -10,6 +10,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+import numpy as np
 
 
 class Test_scanpy_3k_PBMC(unittest.TestCase):
@@ -165,16 +167,36 @@ class Test_scanpy_3k_PBMC(unittest.TestCase):
         # pretest 
         self.overlord.remove_cells(min_genes=200)
         self.overlord.remove_genes(min_cells=3)
-        self.overlord.label_qc_genes(['mt'], ['MT-'])
+        self.overlord.label_qc_genes(label_list=['mt'], search_list=['MT-'])
         self.overlord.calculate_qc_metrics(qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
         self.overlord.simple_qc(method='comparison', value=2500, column_name='n_genes',  operator='<')
         self.overlord.simple_qc(method='comparison', column_name='pct_counts_mt', value=5, operator='<')
         self.overlord.normalize_counts(target_sum=1e4)
         self.overlord.convert_to_log1p()
 
-        self.overlord.save_data('test.h5ad', 'h5ad')
+        self.overlord.save_data('test.h5ad', 'h5ad', foldername='Test', cwd = os.getcwd())
+        print(self.overlord.steps)
+        assert self.overlord.steps[-1] == 'convert_to_log1p' and len(self.overlord.steps) == 8
 
-        assert self.overlord.adata.steps[-1] == 'convert_to_log1p' and len(self.overlord.adata.steps) == 7
+
+    def test_oneliners(self):
+        # pretest 
+        self.overlord.remove_cells(min_genes=200)
+        self.overlord.remove_genes(min_cells=3)
+        self.overlord.label_qc_genes(label_list=['mt'], search_list=['MT-'])
+        self.overlord.calculate_qc_metrics(qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
+        self.overlord.simple_qc(method='comparison', value=2500, column_name='n_genes',  operator='<')
+        self.overlord.simple_qc(method='comparison', column_name='pct_counts_mt', value=5, operator='<')
+        self.overlord.normalize_counts(target_sum=1e4)
+        self.overlord.convert_to_log1p()
+        self.overlord.save_data('test.h5ad', 'h5ad', foldername='Test', cwd = os.getcwd())
+
+        # test
+        overlord_test = ud.preprocessing_overlord.overlord_pp()
+        overlord_test.load_data(self.results_file, 'h5ad')
+        overlord_test.load_and_run_files(foldername='Test', cwd=os.getcwd())
+
+        assert np.max(overlord_test.adata.X.toarray()) == np.max(self.overlord.adata.X.toarray()) and np.min(overlord_test.adata.X.toarray()) == np.min(self.overlord.adata.X.toarray())
 
 
 
