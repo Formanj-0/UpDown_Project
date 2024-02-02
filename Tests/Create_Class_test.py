@@ -196,6 +196,7 @@ class Test_scanpy_3k_PBMC(unittest.TestCase):
         overlord_test.load_data(self.results_file, 'h5ad')
         overlord_test.load_and_run_files(foldername='Test', cwd=os.getcwd())
 
+        # idk why i cant do what i did above but it works so who cares
         assert np.max(overlord_test.adata.X.toarray()) == np.max(self.overlord.adata.X.toarray()) and np.min(overlord_test.adata.X.toarray()) == np.min(self.overlord.adata.X.toarray())
 
 
