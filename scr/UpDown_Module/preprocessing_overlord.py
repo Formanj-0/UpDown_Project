@@ -38,7 +38,7 @@ class overlord_pp():
         return wrapper
 
 
-
+    @record_method_calls
     def load_data(self, data_path, data_type):
         """
         Loads data from the specified data_path and data_type using the preprocessing_functions module.
@@ -51,7 +51,7 @@ class overlord_pp():
         return self.adata
 
 
-
+    @record_method_calls
     def save_data(self, data_path, data_type, foldername, cwd):
         """
         Saves the self.adata object to the specified data_path.
@@ -81,7 +81,7 @@ class overlord_pp():
         return self.adata
 
 
-
+    @record_method_calls
     def load_and_run_files(self, cwd, foldername):
         """
         Loads and runs the files located in the specified location.
@@ -168,7 +168,6 @@ class overlord_pp():
         sc.pp.calculate_qc_metrics(self.adata, qc_vars=qc_vars, percent_top=percent_top, log1p=log1p, inplace=inplace)
         new_qc_obs_names = list(set(self.adata.obs.columns) - set(old_qc_obs_names))  # Get the new QC observation names
         self.adata.uns['qc_obs_names'] = new_qc_obs_names  # Store the new QC observation names in adata.uns['qc_obs_names']
-        
 
 
 
@@ -224,7 +223,7 @@ class overlord_pp():
         axs[0, 0].set_ylabel('Frequency')
 
         # Plot histogram of sums before normalization in log space
-        axs[0, 1].hist(np.log1p(sums_before), bins=50)
+        axs[0, 1].hist(sums_before, bins=50)
         axs[0, 1].set_title('Sums Before Normalization (Log Space)')
         axs[0, 1].set_xlabel('Log(Sum)')
         axs[0, 1].set_ylabel('Frequency')
@@ -238,7 +237,7 @@ class overlord_pp():
         axs[1, 0].set_ylabel('Frequency')
 
         # Plot histogram of sums after normalization in log space
-        axs[1, 1].hist(np.log1p(sums_after), bins=50)
+        axs[1, 1].hist(sums_after, bins=50)
         axs[1, 1].set_title('Sums After Normalization (Log Space)')
         axs[1, 1].set_xlabel('Log(Sum)')
         axs[1, 1].set_ylabel('Frequency')
@@ -262,8 +261,58 @@ class overlord_pp():
         sc.pp.log1p(self.adata)
 
 
+    @record_method_calls
+    def move_column_to_obs(self, column_name):
+        """
+        Moves a column from adata.X array to a column with the same name in adata.obs dataframe,
+        and removes the column from adata.X array.
+        
+        Args:
+            adata (AnnData): Annotated data object.
+            column_name (str): Name of the column to be moved.
+        """
+        # Check if column_name exists in adata.X
+        if column_name in self.adata.var_names:
+            # Get the index of the column in adata.X
+            column_index = self.adata.var_names.get_loc(column_name)
+            
+            # Get the column data from adata.X
+            column_data = self.adata.X[:, column_index]
+            
+            # Add the column to adata.obs with the same name
+            self.adata.obs[column_name] = column_data
+            
+            # Remove the column from adata.X
+            self.adata = self.adata[:, ~column_index]
+        else:
+            print(f"Column '{column_name}' does not exist in adata.X")
 
 
+    @record_method_calls
+    def move_row_to_var(self, row_name):
+        """
+        Moves a row from adata.obs dataframe to a row with the same name in adata.var dataframe,
+        and removes the row from adata.obs dataframe.
+        
+        Args:
+            adata (AnnData): Annotated data object.
+            row_name (str): Name of the row to be moved.
+        """
+        # Check if row_name exists in adata.obs
+        if row_name in self.adata.obs_names:
+            # Get the index of the row in adata.obs
+            row_index = self.adata.obs_names.get_loc(row_name)
+            
+            # Get the row data from adata.obs
+            row_data = self.adata.obs.loc[row_name]
+            
+            # Add the row to adata.var with the same name
+            self.adata.var[row_name] = row_data
+            
+            # Remove the row from adata.obs
+            self.adata = self.adata[~row_index, :]
+        else:
+            print(f"Row '{row_name}' does not exist in adata.obs")
 
 
 
