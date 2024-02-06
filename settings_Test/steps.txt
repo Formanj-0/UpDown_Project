@@ -1,1 +1,0 @@
-['remove_cells', 'remove_genes', 'label_qc_genes', 'calculate_qc_metrics', 'simple_qc', 'simple_qc', 'normalize_counts', 'convert_to_log1p']
