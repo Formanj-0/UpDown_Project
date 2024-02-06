@@ -1,10 +1,22 @@
-class overlord_pp():
+import scr.UpDown_Module.preprocessing_functions as ppf
+import os
+import scanpy as sc
+import numpy as np
+import anndata as ad
+import matplotlib.pyplot as plt
+import ast 
+
+class overlord_LDR():
+    """
+    Lower Dimensionality Reduction overlord class.
+    """
     def __init__(self) -> None:
         self.adata = None
         self.data_path = None
         self.data_type = None
         self.steps = []
         self.params = {}
+
 
 # Decorator to record method calls and their parameters
     def record_method_calls(func):
@@ -96,6 +108,7 @@ class overlord_pp():
             method_params = params.get(method_name, {})
             print(f"Running {method_name} with parameters {method_params}")
             getattr(self, method_name)(**method_params)
+
 
 
 

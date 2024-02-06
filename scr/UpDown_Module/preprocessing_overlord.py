@@ -10,6 +10,9 @@ import ast
 
 
 class overlord_pp():
+    """
+    Preprocessing overlord class.
+    """
     def __init__(self) -> None:
         self.adata = None
         self.data_path = None
@@ -38,6 +41,7 @@ class overlord_pp():
         return wrapper
 
 
+
     @record_method_calls
     def load_data(self, data_path, data_type):
         """
@@ -49,6 +53,7 @@ class overlord_pp():
         self.data_type = data_type
         self.adata = ppf.load_data(data_path, data_type)
         return self.adata
+
 
 
     @record_method_calls
@@ -79,6 +84,7 @@ class overlord_pp():
             params_file.write(str(self.params))
 
         return self.adata
+
 
 
     @record_method_calls
@@ -189,6 +195,7 @@ class overlord_pp():
             print("Invalid visualization method. Please choose a valid method.")
 
 
+
     @record_method_calls
     def simple_qc(self, method, value, column_name, operator):
         if method == 'comparison':
@@ -261,6 +268,7 @@ class overlord_pp():
         sc.pp.log1p(self.adata)
 
 
+
     @record_method_calls
     def move_column_to_obs(self, column_name):
         """
@@ -286,6 +294,7 @@ class overlord_pp():
             self.adata = self.adata[:, ~column_index]
         else:
             print(f"Column '{column_name}' does not exist in adata.X")
+
 
 
     @record_method_calls
